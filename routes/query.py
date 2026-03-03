@@ -1,0 +1,19 @@
+from flask import Blueprint, request, render_template
+from processing.embeddings import get_embeddings
+from processing.vectorstore import load_vectorstore
+from rag.retriever import retrieve_docs
+from rag.qa_chain import generate_answer
+
+query_bp = Blueprint("query", __name__)
+
+@query_bp.route("/query", methods=["POST"])
+def query():
+    question = request.form["question"]
+
+    embeddings = get_embeddings()
+    vectorstore = load_vectorstore(embeddings)
+
+    docs = retrieve_docs(vectorstore, question)
+    answer = generate_answer(docs, question)
+
+    return render_template("index.html", answer=answer)
