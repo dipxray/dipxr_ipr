@@ -1,7 +1,6 @@
 from flask import Blueprint, request, render_template
 from processing.embeddings import get_embeddings
 from processing.vectorstore import load_vectorstore
-from rag.retriever import retrieve_docs
 from rag.qa_chain import generate_answer
 
 query_bp = Blueprint("query", __name__)
@@ -13,7 +12,7 @@ def query():
     embeddings = get_embeddings()
     vectorstore = load_vectorstore(embeddings)
 
-    docs = retrieve_docs(vectorstore, question)
-    answer = generate_answer(docs, question)
+    # Let QA chain handle retrieval + augmentation
+    answer = generate_answer(vectorstore, question)
 
     return render_template("index.html", answer=answer)
