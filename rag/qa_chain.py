@@ -1,29 +1,41 @@
-from rag.prompts import LEGAL_PROMPT
-from transformers import pipeline
-import torch
+from rag.retriever import retrieve_docs
+from langchain_community.llms import Ollama
 
-# Load LLM once (global)
-generator = pipeline(
-    "text-generation",
-    model="google/flan-t5-base",
-    torch_dtype=torch.float16,
-    device_map="auto",
-    dtype=torch.float16
+# Initialize Mistral LLM once
+llm = Ollama(
+    model="mistral",
+    temperature=0.0,
+    num_predict=150 # deterministic for legal answers
 )
 
-def generate_answer(docs, question):
-    context = "\n\n".join([doc.page_content for doc in docs])
+def generate_answer(vectorstore, query):
+    # Step 1: Retrieve documents
+    docs = retrieve_docs(vectorstore, query, k=3)
 
-    prompt = LEGAL_PROMPT.format(
-        context=context,
-        question=question
-    )
+    # Step 2: Merge context (limit size to avoid overload)
+    context = "\n\n".join([doc.page_content[:400] for doc in docs])
 
-    response = generator(
-        prompt,
-        max_new_tokens=512,
-        temperature=0.2,
-        do_sample=False
-    )
+    # Step 3: Optimized Augmented Prompt (shorter + stronger)
+    prompt = f"""
+You are a Legal AI Advisor specializing in Intellectual Property Law.
 
-    return response[0]["generated_text"]
+Answer ONLY using the provided context.
+If the answer is not found, say:
+"The answer is not available in the provided document."
+
+Give a clear, structured, and concise response.
+
+Context:
+{context}
+
+Question:
+{query}
+
+Answer in this format:
+Short Answer:
+"""
+
+    # Step 4: Generate response
+    response = llm.invoke(prompt)
+
+    return response.strip()
