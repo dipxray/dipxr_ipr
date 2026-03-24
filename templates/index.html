@@ -4,283 +4,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legal AI RAG System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Diptaman's Legal AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg-color: #0f172a;
-            --surface: rgba(30, 41, 59, 0.7);
-            --surface-border: rgba(255, 255, 255, 0.1);
+            --bg-color: #0b0f19;
+            --accent: #fc466b;
+            --accent2: #3f5efb;
+            --surface: rgba(22, 28, 45, 0.6);
+            --surface-border: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
             padding: 2rem;
             position: relative;
             overflow-x: hidden;
         }
 
-        /* Decorative background elements */
-        body::before {
-            content: '';
+        /* Dynamic animated backgrounds */
+        .blob {
             position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 50%;
-            height: 50%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+            filter: blur(80px);
             z-index: 0;
-            pointer-events: none;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out alternate;
         }
 
-        body::after {
-            content: '';
-            position: absolute;
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--accent2) 0%, transparent 70%);
+        }
+
+        .blob-2 {
             bottom: -10%;
             right: -10%;
-            width: 50%;
-            height: 50%;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 60%);
-            z-index: 0;
-            pointer-events: none;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+
+            100% {
+                transform: translateY(50px) scale(1.1);
+            }
         }
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             z-index: 1;
             display: flex;
             flex-direction: column;
             gap: 2rem;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 1rem;
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
         }
 
-        h1 {
-            font-size: 2.5rem;
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
             font-weight: 700;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            background: linear-gradient(135deg, #fff, #a5b4fc);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
 
-        p.subtitle {
+        .header p {
             color: var(--text-muted);
             font-size: 1.1rem;
         }
 
-        .card {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--surface-border);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .card h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+        /* Unified Action Area */
+        .actions-wrapper {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card h2::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 24px;
-            background: var(--primary);
-            border-radius: 4px;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
         form {
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 1rem;
+            width: 100%;
+            position: relative;
         }
 
-        .form-row {
+        /* Upload Styling */
+        .upload-section {
             display: flex;
+            align-items: center;
             gap: 1rem;
-            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
         }
 
-        input[type="text"],
+        .upload-section:hover {
+            border-color: var(--accent2);
+            background: rgba(63, 94, 251, 0.05);
+        }
+
         input[type="file"] {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 0.875rem 1rem;
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s ease;
+            color: var(--text-muted);
+            font-size: 0.9rem;
             width: 100%;
-        }
-
-        input[type="text"]:focus,
-        input[type="file"]:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
 
         input[type="file"]::file-selector-button {
-            background: var(--surface);
-            color: var(--text-main);
-            border: 1px solid var(--surface-border);
+            background: linear-gradient(135deg, var(--accent2), #818cf8);
+            color: white;
+            border: none;
             padding: 0.5rem 1rem;
-            border-radius: 6px;
-            margin-right: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: 0.2s;
+            margin-right: 1rem;
         }
 
         input[type="file"]::file-selector-button:hover {
-            background: rgba(255, 255, 255, 0.1);
+            filter: brightness(1.2);
         }
 
-        button {
-            background: var(--primary);
+        .btn-upload {
+            background: rgba(255, 255, 255, 0.1);
             color: white;
             border: none;
-            padding: 0.875rem 1.5rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 1rem;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: background 0.2s ease, transform 0.1s ease;
+            transition: 0.2s;
             white-space: nowrap;
         }
 
-        button:hover {
-            background: var(--primary-hover);
+        .btn-upload:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        button:active {
-            transform: scale(0.98);
+        /* Search Bar Styling */
+        .search-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
         }
 
-        .answer-box {
-            margin-top: 2rem;
-            border-top: 1px solid var(--surface-border);
-            padding-top: 2rem;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .answer-box h3 {
-            color: #818cf8;
-            margin-bottom: 1rem;
+        input[type="text"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--surface-border);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            padding-right: 120px;
+            border-radius: 16px;
+            font-family: 'Outfit', sans-serif;
             font-size: 1.1rem;
-        }
-
-        .answer-content {
-            background: rgba(2, 6, 23, 0.5);
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            font-size: 1rem;
+            transition: all 0.3s ease;
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
+        input[type="text"]:focus {
+            border-color: var(--accent2);
+            box-shadow: 0 0 0 4px rgba(63, 94, 251, 0.15), inset 0 2px 10px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
 
+        .btn-search {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(252, 70, 107, 0.3);
+        }
+
+        .btn-search:hover {
+            filter: brightness(1.15);
+            transform: translateY(-50%) scale(1.02);
+        }
+
+        .btn-search:active {
+            transform: translateY(-50%) scale(0.98);
+        }
+
+        /* Results Area */
+        .answer-box {
+            margin-top: 2.5rem;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .answer-content {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+            line-height: 1.7;
+            font-size: 1.05rem;
+            white-space: pre-wrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent2), var(--accent));
+        }
+
+        @keyframes slideUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* Responsive */
         @media (max-width: 600px) {
-            .form-row {
-                flex-direction: column;
+            .glass-panel {
+                padding: 1.5rem;
             }
 
-            button {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .upload-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-upload {
                 width: 100%;
+            }
+
+            input[type="text"] {
+                padding-right: 1.5rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .btn-search {
+                position: relative;
+                transform: none;
+                right: auto;
+                top: auto;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .btn-search:hover,
+            .btn-search:active {
+                transform: none;
             }
         }
     </style>
 </head>
 
 <body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
     <div class="container">
-        <header>
-            <h1>Legal AI Assistant</h1>
-            <p class="subtitle">Upload your documents and ask intelligent questions.</p>
-        </header>
+        <div class="glass-panel">
+            <div class="header">
+                <h1>AIPR </h1>
+                <p>Upload documents, search patents, or ask legal questions securely.</p>
+            </div>
 
-        <!-- Document Upload Section -->
-        <div class="card">
-            <h2>Data Source</h2>
-            <form action="/upload" method="POST" enctype="multipart/form-data">
-                <div class="form-row">
-                    <input type="file" name="file" accept=".pdf" required>
-                    <button type="submit">Upload PDF</button>
-                </div>
-            </form>
-        </div>
+            <div class="actions-wrapper">
+                <!-- Upload Form -->
+                <form action="/upload" method="POST" enctype="multipart/form-data" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+                    <div class="upload-section">
+                        <input type="file" name="file" accept=".pdf" required>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <label style="color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="wants_summary" value="yes" checked style="accent-color: var(--accent2); width: 18px; height: 18px;">
+                                Generate Summary
+                            </label>
+                            
+                            <select name="summary_length" style="padding: 0.5rem; border-radius: 8px; background: rgba(15, 23, 42, 0.6); color: white; border: 1px solid rgba(255, 255, 255, 0.1); outline: none;">
+                                <option value="150 words">Short (~150 words)</option>
+                                <option value="500 words" selected>Medium (~500 words)</option>
+                                <option value="1000 words">Detailed (~1000 words)</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn-upload">Load Document</button>
+                    </div>
+                </form>
 
-        <!-- Query Section -->
-        <div class="card">
-            <h2>Ask Question</h2>
-            <form action="/query" method="POST">
-                <div class="form-row">
-                    <input type="text" name="question" placeholder="E.g. What is IPR?" required autocomplete="off">
-                    <button type="submit">Ask Model</button>
+                <!-- Query Form -->
+                {% if answer %}
+                <div style="text-align: center; margin-bottom: 0.5rem; color: var(--accent2); font-weight: 500; font-size: 1.05rem;">
+                    ✨ Success! Do you want to ask specific questions about this document?
                 </div>
-            </form>
+                {% endif %}
+                <form action="/query" method="POST">
+                    <div class="search-container">
+                        <input type="text" name="question" value="{{ question if question else '' }}"
+                            placeholder="Ask anything about your document or general law..." required
+                            autocomplete="off">
+                        <button type="submit" class="btn-search">Ask Model</button>
+                    </div>
+                </form>
+            </div>
 
             <!-- Results -->
             {% if answer %}
             <div class="answer-box">
-                <h3>Answer</h3>
+                {% if question %}
+                <div style="margin-bottom: 1rem; color: var(--accent2); font-weight: 600; font-size: 1.1rem;">
+                    You asked: <span style="color: var(--text-main); font-weight: 400;">"{{ question }}"</span>
+                </div>
+                {% else %}
+                <div style="margin-bottom: 1rem; color: var(--accent); font-weight: 600; font-size: 1.1rem;">
+                    Document Scan Complete:
+                </div>
+                {% endif %}
                 <div class="answer-content">{{ answer }}</div>
             </div>
             {% endif %}
         </div>
     </div>
+
+    <!-- Simple loading state script -->
+    <script>
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function() {
+                const btn = this.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.innerHTML = 'Processing... <span style="font-size:0.8em">⏳</span>';
+                    btn.style.opacity = '0.7';
+                    btn.style.pointerEvents = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

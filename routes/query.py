@@ -9,10 +9,11 @@ query_bp = Blueprint("query", __name__)
 def query():
     question = request.form["question"]
 
+    # Load vectorstore
     embeddings = get_embeddings()
     vectorstore = load_vectorstore(embeddings)
 
-    # Let QA chain handle retrieval + augmentation
+    # Generate answer (retrieval + DB save happens inside qa_chain)
     answer = generate_answer(vectorstore, question)
 
-    return render_template("index.html", answer=answer)
+    return render_template("index.html", answer=answer, question=question)
