@@ -3,6 +3,7 @@ from langchain_community.llms import Ollama
 from database import save_interaction, get_recent_interactions
 from tools.patent_search import get_patent_results, format_patent_context
 from utils import delete_uploaded_data
+from rag.router import classify_intent
 # -----------------------------
 # Decide if Patent Search Needed
 # -----------------------------
@@ -62,25 +63,12 @@ llm = Ollama(
 def generate_answer(vectorstore, query):
 
     q_type = classify_question(query)
-
-    # Use the LLM to classify the intent automatically
-    intent_prompt = f"""Analyze this question: '{query}'
-Classify it into exactly ONE of these five words:
-WEB - if the user is explicitly asking to search the internet/web for existing patents.
-DOCUMENT - if the user is asking about "this document", "the uploaded pdf", or referencing specific text from the provided file.
-DELETE - if the user is asking to delete, remove, or clear the uploaded document, pdf, or database.
-GENERAL - if the user is asking a general knowledge question about intellectual property, laws, or definitions not tied to a specific document.
-OFF_TOPIC - if the question is completely unrelated to Intellectual Property, patents, legal matters, or the uploaded document (e.g., math, programming, cooking, random chat).
-
-Reply ONLY with the single word."""
-
-    intent = llm.invoke(intent_prompt).strip().upper()
-    print("LLM Intent Classification:", intent)
+    intent = classify_intent(query)
 
     if "OFF_TOPIC" in intent:
         answer = "Hey! Nice try, but I am strictly a specialized AI for Intellectual Property Rights (IPR) and Law. I cannot answer random questions! Please ask me something related to patents, copyrights, or your uploaded document. 👨‍🏫"
         save_interaction(question=query, question_type="off_topic", context="", answer=answer)
-        return answer
+        return answer, "OFF_TOPIC"
 
     # =====================================
     # CASE 1: PATENT SEARCH QUERY
@@ -94,21 +82,22 @@ Reply ONLY with the single word."""
         patent_context = format_patent_context(patent_results)
 
         prompt = f"""
-You are a Patent Research Assistant.
+You are an expert Patent & IPR Research Assistant with deep browser access.
 
-Answer the user's question using ONLY the patent search results.
+Answer the user's question by analyzing the provided web search and browser results. 
+If the results contain deep context from a webpage, prioritize that information.
 
-Patent Search Results:
+Web Search & Browser Results:
 {patent_context}
 
 Question:
 {query}
 
 Instructions:
-- Identify relevant patents
-- Mention title and link if useful
-- If nothing relevant exists say:
-  "No relevant patents found."
+- Provide a detailed analysis of relevant patents or filings found.
+- Mention titles, patent numbers (if available), and source links.
+- If the search results are insufficient to answer the question accurately, say so.
+- Keep your tone professional and informative.
 
 Answer:
 """
@@ -123,7 +112,7 @@ Answer:
             answer=answer
         )
 
-        return answer
+        return answer, "WEB"
 
 
     # =====================================
@@ -137,7 +126,7 @@ Answer:
         if not doc_context.strip():
             answer = "I couldn't find anything related to that in the uploaded document."
             save_interaction(question=query, question_type=q_type, context="", answer=answer)
-            return answer
+            return answer, "DOCUMENT"
 
         if q_type == "definition":
             instruction = "Give a short 3-4 line definition."
@@ -160,17 +149,18 @@ Answer:
             memory_context += "INSTRUCTION: Look at how you framed your answers in the past examples above. Maintain this exact style, tone, and formatting in your new answer.\n"
 
         prompt = f"""
-You are a fun and enthusiastic teacher specializing in Intellectual Property Law! 
-Always start your response with something like "Hey! Here are the things..."
+You are a specialized Intellectual Property Law expert. 
+Your goal is to provide highly accurate and professional answers based on the uploaded document.
 
 STRICT RULES:
-- Answer ONLY using the provided context.
-- Keep your tone cheerful, educational, and engaging like a fun teacher.
-- ALWAYS end your response with an engaging follow-up: either a relevant "Did you know?" fun fact, OR a friendly question asking what they want to explore next about this topic to keep the conversation going!
+- Answer ONLY using the provided context from the document.
+- If the answer is not in the document, explicitly state that.
+- Keep your tone professional, yet direct and helpful.
+- ALWAYS end your response with a professional follow-up question related to the document's content to assist the user further.
 
 {memory_context}
 
-Context:
+Context from Uploaded Document:
 {doc_context}
 
 Question:
@@ -185,7 +175,7 @@ Answer:
         answer = response.strip()
 
         save_interaction(question=query, question_type=q_type, context=doc_context, answer=answer)
-        return answer
+        return answer, "DOCUMENT"
 
     # =====================================
     # CASE 3: DELETE INTENT 
@@ -194,7 +184,7 @@ Answer:
         delete_uploaded_data()
         answer = "I have successfully deleted the uploaded PDF, cleared my memory of the document, and reset our conversation history. You can upload a new document whenever you're ready!"
         save_interaction(question=query, question_type="delete", context="", answer=answer)
-        return answer
+        return answer, "DELETE"
 
     # =====================================
     # CASE 4: GENERAL KNOWLEDGE 
@@ -210,15 +200,14 @@ Answer:
             memory_context += "INSTRUCTION: Look at how you framed your answers in the past examples above. Maintain this exact style, tone, and formatting in your new answer.\n"
 
         prompt = f"""
-You are a fun and enthusiastic teacher specializing in Intellectual Property Law! 
-Always start your response with something like "Hey! Here are the things..."
+You are a highly knowledgeable Intellectual Property Law expert. 
+Answer the user's general IPR-related question with precision and clarity.
 
 STRICT RULES:
 - You are strictly an Intellectual Property Rights (IPR) AI model.
-- If the user's question is somehow NOT about law, intellectual property, patents, or related fields, you MUST completely refuse to answer it. Politely state that you only answer IPR-related questions.
-- Answer based on your general knowledge.
-- Keep your tone cheerful, educational, and engaging like a fun teacher.
-- ALWAYS end your response with an engaging follow-up: either a relevant "Did you know?" fun fact, OR a friendly question asking what they want to explore next about this topic to keep the conversation going!
+- If the question is NOT related to law, intellectual property, patents, or related fields, politely refuse to answer.
+- Keep your tone professional, informative, and direct.
+- ALWAYS end your response with a professional follow-up question to keep the consultation going.
 
 {memory_context}
 
@@ -231,7 +220,7 @@ Answer:
         answer = response.strip()
 
         save_interaction(question=query, question_type=q_type, context="General Knowledge", answer=answer)
-        return answer
+        return answer, "GENERAL"
 
 
 # -----------------------------

@@ -14,6 +14,6 @@ def query():
     vectorstore = load_vectorstore(embeddings)
 
     # Generate answer (retrieval + DB save happens inside qa_chain)
-    answer = generate_answer(vectorstore, question)
+    answer, source = generate_answer(vectorstore, question)
 
-    return render_template("index.html", answer=answer, question=question)
+    return render_template("index.html", answer=answer, question=question, source=source)

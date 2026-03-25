@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diptaman's Legal AI</title>
+    <title>Aipr</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -267,6 +267,44 @@
             background: linear-gradient(to bottom, var(--accent2), var(--accent));
         }
 
+        /* Badge Styling */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-document {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+        }
+
+        .badge-web {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .badge-general {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+
+        .badge-off-topic {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
         @keyframes slideUp {
             to {
                 opacity: 1;
@@ -331,32 +369,38 @@
 
             <div class="actions-wrapper">
                 <!-- Upload Form -->
-                <form action="/upload" method="POST" enctype="multipart/form-data" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+                <form action="/upload" method="POST" enctype="multipart/form-data"
+                    style="flex-direction: column; align-items: stretch; gap: 1rem;">
                     <div class="upload-section">
                         <input type="file" name="file" accept=".pdf" required>
                     </div>
-                    
-                    <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+
+                    <div
+                        style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
                         <div style="display: flex; gap: 1rem; align-items: center;">
-                            <label style="color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" name="wants_summary" value="yes" checked style="accent-color: var(--accent2); width: 18px; height: 18px;">
+                            <label
+                                style="color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="wants_summary" value="yes" checked
+                                    style="accent-color: var(--accent2); width: 18px; height: 18px;">
                                 Generate Summary
                             </label>
-                            
-                            <select name="summary_length" style="padding: 0.5rem; border-radius: 8px; background: rgba(15, 23, 42, 0.6); color: white; border: 1px solid rgba(255, 255, 255, 0.1); outline: none;">
+
+                            <select name="summary_length"
+                                style="padding: 0.5rem; border-radius: 8px; background: rgba(15, 23, 42, 0.6); color: white; border: 1px solid rgba(255, 255, 255, 0.1); outline: none;">
                                 <option value="150 words">Short (~150 words)</option>
                                 <option value="500 words" selected>Medium (~500 words)</option>
                                 <option value="1000 words">Detailed (~1000 words)</option>
                             </select>
                         </div>
-                        
+
                         <button type="submit" class="btn-upload">Load Document</button>
                     </div>
                 </form>
 
                 <!-- Query Form -->
                 {% if answer %}
-                <div style="text-align: center; margin-bottom: 0.5rem; color: var(--accent2); font-weight: 500; font-size: 1.05rem;">
+                <div
+                    style="text-align: center; margin-bottom: 0.5rem; color: var(--accent2); font-weight: 500; font-size: 1.05rem;">
                     ✨ Success! Do you want to ask specific questions about this document?
                 </div>
                 {% endif %}
@@ -373,15 +417,28 @@
             <!-- Results -->
             {% if answer %}
             <div class="answer-box">
-                {% if question %}
-                <div style="margin-bottom: 1rem; color: var(--accent2); font-weight: 600; font-size: 1.1rem;">
-                    You asked: <span style="color: var(--text-main); font-weight: 400;">"{{ question }}"</span>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                    {% if question %}
+                    <div style="color: var(--accent2); font-weight: 600; font-size: 1.1rem;">
+                        You asked: <span style="color: var(--text-main); font-weight: 400;">"{{ question }}"</span>
+                    </div>
+                    {% else %}
+                    <div style="color: var(--accent); font-weight: 600; font-size: 1.1rem;">
+                        Document Scan Complete:
+                    </div>
+                    {% endif %}
+
+                    {% if source == 'DOCUMENT' %}
+                    <span class="badge badge-document">📄 PDF Source</span>
+                    {% elif source == 'WEB' %}
+                    <span class="badge badge-web">🌐 Web Search</span>
+                    {% elif source == 'GENERAL' %}
+                    <span class="badge badge-general">🧠 General AI</span>
+                    {% elif source == 'OFF_TOPIC' %}
+                    <span class="badge badge-off-topic">⚠️ Off-Topic</span>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div style="margin-bottom: 1rem; color: var(--accent); font-weight: 600; font-size: 1.1rem;">
-                    Document Scan Complete:
-                </div>
-                {% endif %}
                 <div class="answer-content">{{ answer }}</div>
             </div>
             {% endif %}
@@ -392,7 +449,7 @@
     <script>
         const forms = document.querySelectorAll('form');
         forms.forEach(form => {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function () {
                 const btn = this.querySelector('button[type="submit"]');
                 if (btn) {
                     btn.innerHTML = 'Processing... <span style="font-size:0.8em">⏳</span>';
